@@ -7,6 +7,12 @@ export const createShop = async (req, res) => {
       category,
       address,
       phone,
+      description,
+      openingTime,
+      closingTime,
+      deliveryAvailable,
+      longitude,
+      latitude,
     } = req.body;
 
     const existingShop = await Shop.findOne({
@@ -25,12 +31,37 @@ export const createShop = async (req, res) => {
       category,
       address,
       phone,
+      description,
+      openingTime,
+      closingTime,
+      deliveryAvailable,
+      location: {
+        type: 'Point',
+        coordinates: [longitude, latitude],
+      },
       owner: req.user._id,
     });
 
     res.status(201).json({
       success: true,
       shop,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const getAllShops = async (req, res) => {
+  try {
+    const shops = await Shop.find().populate('owner', 'name email phone');
+
+    res.status(200).json({
+      success: true,
+      count: shops.length,
+      shops,
     });
   } catch (error) {
     res.status(500).json({

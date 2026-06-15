@@ -16,12 +16,7 @@ const shopSchema = new mongoose.Schema(
 
     category: {
       type: String,
-      enum: [
-        'MEDICAL',
-        'GROCERY',
-        'VEGETABLE',
-        'PHOTOCOPY',
-      ],
+      enum: ['MEDICAL', 'GROCERY', 'VEGETABLE', 'PHOTOCOPY'],
       required: true,
     },
 
@@ -35,6 +30,52 @@ const shopSchema = new mongoose.Schema(
       required: true,
     },
 
+    description: {
+      type: String,
+      default: '',
+    },
+
+    openingTime: {
+      type: String,
+      default: '09:00',
+    },
+
+    closingTime: {
+      type: String,
+      default: '21:00',
+    },
+
+    deliveryAvailable: {
+      type: Boolean,
+      default: false,
+    },
+
+    rating: {
+  type: Number,
+  default: 0,
+  min: 0,
+  max: 5,
+},
+
+    location: {
+      type: {
+        type: String,
+        enum: ['Point'],
+        default: 'Point',
+      },
+
+      coordinates: {
+        type: [Number],
+        required: true,
+        validate: {
+          validator: function (value) {
+            return value.length === 2;
+          },
+          message: 'Coordinates must contain [longitude, latitude]',
+        },
+      },
+    },
+
     isOpen: {
       type: Boolean,
       default: true,
@@ -44,6 +85,9 @@ const shopSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+shopSchema.index({
+  location: '2dsphere',
+});
 
 const Shop = mongoose.model('Shop', shopSchema);
 

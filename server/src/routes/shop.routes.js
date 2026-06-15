@@ -1,11 +1,13 @@
 import express from 'express';
 
-import { createShop } from '../controllers/shop.controller.js';
+import { createShop, getAllShops, } from '../controllers/shop.controller.js';
 
 import { protect } from '../middlewares/auth.middleware.js';
 import { authorize } from '../middlewares/role.middleware.js';
 
 const router = express.Router();
+
+router.get('/', getAllShops);
 
 router.post(
   '/',
@@ -13,5 +15,6 @@ router.post(
   authorize('SHOP_OWNER'),
   createShop
 );
+
 
 export default router;
