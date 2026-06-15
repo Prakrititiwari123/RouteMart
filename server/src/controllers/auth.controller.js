@@ -93,3 +93,14 @@ export const loginUser = async (req, res) => {
     });
   }
 };
+
+
+export const getCurrentUser = async (
+  req,
+  res
+) => {
+  res.status(200).json({
+    success: true,
+    user: req.user,
+  });
+};
