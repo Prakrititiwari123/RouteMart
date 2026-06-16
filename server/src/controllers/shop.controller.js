@@ -54,6 +54,8 @@ export const createShop = async (req, res) => {
   }
 };
 
+
+
 export const getAllShops = async (req, res) => {
   try {
     const shops = await Shop.find().populate('owner', 'name email phone');
@@ -62,6 +64,74 @@ export const getAllShops = async (req, res) => {
       success: true,
       count: shops.length,
       shops,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+
+
+export const getShopById = async (req, res) => {
+  try {
+    const shop = await Shop.findById(req.params.id)
+      .populate('owner', 'name email phone');
+
+    if (!shop) {
+      return res.status(404).json({
+        success: false,
+        message: 'Shop not found',
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      shop,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+
+
+export const updateShop = async (req, res) => {
+  try {
+    const shop = await Shop.findById(req.params.id);
+
+    if (!shop) {
+      return res.status(404).json({
+        success: false,
+        message: 'Shop not found',
+      });
+    }
+
+    // Ownership Check
+    if (shop.owner.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: 'You can update only your own shop',
+      });
+    }
+
+    const updatedShop = await Shop.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+
+    res.status(200).json({
+      success: true,
+      shop: updatedShop,
     });
   } catch (error) {
     res.status(500).json({
