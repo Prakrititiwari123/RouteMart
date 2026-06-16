@@ -58,6 +58,20 @@ const orderSchema = new mongoose.Schema(
       enum: ['PENDING', 'PARTIAL', 'PAID'],
       default: 'PENDING',
     },
+    advanceAmount: {
+      type: Number,
+      default: 0,
+    },
+
+    remainingAmount: {
+      type: Number,
+      default: 0,
+    },
+
+    advancePaid: {
+      type: Boolean,
+      default: false,
+    },
 
     deliveryType: {
       type: String,

@@ -33,11 +33,18 @@ export const createOrder = async (req, res) => {
       };
     });
 
+    const advanceAmount = Number((totalAmount * 0.2).toFixed(2));
+
+    const remainingAmount = Number((totalAmount - advanceAmount).toFixed(2));
+
     const order = await Order.create({
       user: req.user._id,
       shop: shopId,
       products,
       totalAmount,
+
+      advanceAmount,
+      remainingAmount,
 
       pickupCode: generatePickupCode(),
 
@@ -172,6 +179,43 @@ export const verifyPickupCode = async (req, res) => {
     res.status(200).json({
       success: true,
       message: 'Pickup Verified Successfully',
+      order,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+
+export const payAdvanceAmount = async (
+  req,
+  res
+) => {
+  try {
+    const order = await Order.findById(
+      req.params.id
+    );
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: 'Order not found',
+      });
+    }
+
+    order.advancePaid = true;
+
+    order.paymentStatus = 'PARTIAL';
+
+    await order.save();
+
+    res.status(200).json({
+      success: true,
+      message:
+        'Advance Payment Successful',
       order,
     });
   } catch (error) {
