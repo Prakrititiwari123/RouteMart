@@ -51,11 +51,11 @@ const shopSchema = new mongoose.Schema(
     },
 
     rating: {
-  type: Number,
-  default: 0,
-  min: 0,
-  max: 5,
-},
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 5,
+    },
 
     location: {
       type: {

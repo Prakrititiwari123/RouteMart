@@ -173,3 +173,52 @@ export const deleteShop = async (req, res) => {
     });
   }
 };
+
+
+export const getNearbyShops = async (
+  req,
+  res
+) => {
+  try {
+    const { lat, lng, radius } =
+      req.query;
+
+    if (!lat || !lng) {
+      return res.status(400).json({
+        success: false,
+        message:
+          'Latitude and Longitude required',
+      });
+    }
+
+    const shops = await Shop.find({
+      location: {
+        $near: {
+          $geometry: {
+            type: 'Point',
+            coordinates: [
+              Number(lng),
+              Number(lat),
+            ],
+          },
+          $maxDistance:
+            Number(radius) || 5000,
+        },
+      },
+    }).populate(
+      'owner',
+      'name phone'
+    );
+
+    res.status(200).json({
+      success: true,
+      count: shops.length,
+      shops,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
