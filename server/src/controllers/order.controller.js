@@ -1,18 +1,15 @@
 import Order from '../models/order.model.js';
 import Cart from '../models/cart.model.js';
 import Product from '../models/product.model.js';
+import Shop from '../models/shop.model.js';
 
-export const createOrder = async (
-  req,
-  res
-) => {
+export const createOrder = async (req, res) => {
   try {
     const { deliveryType } = req.body;
 
-    const cartItems =
-      await Cart.find({
-        user: req.user._id,
-      }).populate('product');
+    const cartItems = await Cart.find({
+      user: req.user._id,
+    }).populate('product');
 
     if (!cartItems.length) {
       return res.status(400).json({
@@ -21,38 +18,27 @@ export const createOrder = async (
       });
     }
 
-    const shopId =
-      cartItems[0].product.shop;
+    const shopId = cartItems[0].product.shop;
 
     let totalAmount = 0;
 
-    const products = cartItems.map(
-      (item) => {
-        totalAmount +=
-          item.product.price *
-          item.quantity;
+    const products = cartItems.map((item) => {
+      totalAmount += item.product.price * item.quantity;
 
-        return {
-          product:
-            item.product._id,
-          quantity:
-            item.quantity,
-          price:
-            item.product.price,
-        };
-      }
-    );
+      return {
+        product: item.product._id,
+        quantity: item.quantity,
+        price: item.product.price,
+      };
+    });
 
-    const order =
-      await Order.create({
-        user: req.user._id,
-        shop: shopId,
-        products,
-        totalAmount,
-        deliveryType:
-          deliveryType ||
-          'PICKUP',
-      });
+    const order = await Order.create({
+      user: req.user._id,
+      shop: shopId,
+      products,
+      totalAmount,
+      deliveryType: deliveryType || 'PICKUP',
+    });
 
     await Cart.deleteMany({
       user: req.user._id,
@@ -70,29 +56,79 @@ export const createOrder = async (
   }
 };
 
-
-
-export const getMyOrders = async (
-  req,
-  res
-) => {
+export const getMyOrders = async (req, res) => {
   try {
     const orders = await Order.find({
       user: req.user._id,
     })
-      .populate(
-        'shop',
-        'shopName category'
-      )
-      .populate(
-        'products.product',
-        'name price'
-      );
+      .populate('shop', 'shopName category')
+      .populate('products.product', 'name price');
 
     res.status(200).json({
       success: true,
       count: orders.length,
       orders,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const getShopOrders = async (req, res) => {
+  try {
+    const shop = await Shop.findOne({
+      owner: req.user._id,
+    });
+
+    if (!shop) {
+      return res.status(404).json({
+        success: false,
+        message: 'Shop not found',
+      });
+    }
+
+    const orders = await Order.find({
+      shop: shop._id,
+    })
+      .populate('user', 'name email phone')
+      .populate('products.product', 'name price');
+
+    res.status(200).json({
+      success: true,
+      count: orders.length,
+      orders,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const updateOrderStatus = async (req, res) => {
+  try {
+    const { orderStatus } = req.body;
+
+    const order = await Order.findById(req.params.id);
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: 'Order not found',
+      });
+    }
+
+    order.orderStatus = orderStatus;
+
+    await order.save();
+
+    res.status(200).json({
+      success: true,
+      order,
     });
   } catch (error) {
     res.status(500).json({
