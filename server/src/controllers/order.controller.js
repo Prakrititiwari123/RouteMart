@@ -69,3 +69,35 @@ export const createOrder = async (
     });
   }
 };
+
+
+
+export const getMyOrders = async (
+  req,
+  res
+) => {
+  try {
+    const orders = await Order.find({
+      user: req.user._id,
+    })
+      .populate(
+        'shop',
+        'shopName category'
+      )
+      .populate(
+        'products.product',
+        'name price'
+      );
+
+    res.status(200).json({
+      success: true,
+      count: orders.length,
+      orders,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
