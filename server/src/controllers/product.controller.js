@@ -1,20 +1,10 @@
 import Product from '../models/product.model.js';
 import Shop from '../models/shop.model.js';
 
-export const createProduct = async (
-  req,
-  res
-) => {
+export const createProduct = async (req, res) => {
   try {
-    const {
-      shopId,
-      name,
-      description,
-      category,
-      price,
-      stock,
-      image,
-    } = req.body;
+    const { shopId, name, description, category, price, stock, image } =
+      req.body;
 
     const shop = await Shop.findById(shopId);
 
@@ -26,27 +16,22 @@ export const createProduct = async (
     }
 
     // Owner Check
-    if (
-      shop.owner.toString() !==
-      req.user._id.toString()
-    ) {
+    if (shop.owner.toString() !== req.user._id.toString()) {
       return res.status(403).json({
         success: false,
-        message:
-          'You can add products only to your own shop',
+        message: 'You can add products only to your own shop',
       });
     }
 
-    const product =
-      await Product.create({
-        shop: shopId,
-        name,
-        description,
-        category,
-        price,
-        stock,
-        image,
-      });
+    const product = await Product.create({
+      shop: shopId,
+      name,
+      description,
+      category,
+      price,
+      stock,
+      image,
+    });
 
     res.status(201).json({
       success: true,
@@ -60,32 +45,42 @@ export const createProduct = async (
   }
 };
 
-
-export const getAllProducts = async (
-  req,
-  res
-) => {
+export const getAllProducts = async (req, res) => {
   try {
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 10;
 
-    const keyword = req.query.keyword
-      ? {
-          name: {
-            $regex: req.query.keyword,
-            $options: 'i',
-          },
-        }
-      : {};
+    let filter = {};
 
-    const category = req.query.category
-      ? { category: req.query.category }
-      : {};
+    // Search
+    if (req.query.keyword) {
+      filter.name = {
+        $regex: req.query.keyword,
+        $options: 'i',
+      };
+    }
 
-    const filter = {
-      ...keyword,
-      ...category,
-    };
+    // Category Filter
+    if (req.query.category) {
+      filter.category = req.query.category;
+    }
+
+    // Price Filter
+    if (req.query.minPrice || req.query.maxPrice) {
+      filter.price = {};
+
+      if (req.query.minPrice) {
+        filter.price.$gte = Number(
+          req.query.minPrice
+        );
+      }
+
+      if (req.query.maxPrice) {
+        filter.price.$lte = Number(
+          req.query.maxPrice
+        );
+      }
+    }
 
     const totalProducts =
       await Product.countDocuments(filter);
@@ -115,19 +110,12 @@ export const getAllProducts = async (
   }
 };
 
-
-export const getProductById = async (
-  req,
-  res
-) => {
+export const getProductById = async (req, res) => {
   try {
-    const product =
-      await Product.findById(
-        req.params.id
-      ).populate(
-        'shop',
-        'shopName category address'
-      );
+    const product = await Product.findById(req.params.id).populate(
+      'shop',
+      'shopName category address'
+    );
 
     if (!product) {
       return res.status(404).json({
@@ -148,13 +136,9 @@ export const getProductById = async (
   }
 };
 
-
-
 export const updateProduct = async (req, res) => {
   try {
-    const product = await Product.findById(
-      req.params.id
-    ).populate('shop');
+    const product = await Product.findById(req.params.id).populate('shop');
 
     if (!product) {
       return res.status(404).json({
@@ -163,26 +147,21 @@ export const updateProduct = async (req, res) => {
       });
     }
 
-    if (
-      product.shop.owner.toString() !==
-      req.user._id.toString()
-    ) {
+    if (product.shop.owner.toString() !== req.user._id.toString()) {
       return res.status(403).json({
         success: false,
-        message:
-          'You can update only your own products',
+        message: 'You can update only your own products',
       });
     }
 
-    const updatedProduct =
-      await Product.findByIdAndUpdate(
-        req.params.id,
-        req.body,
-        {
-          new: true,
-          runValidators: true,
-        }
-      );
+    const updatedProduct = await Product.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
 
     res.status(200).json({
       success: true,
@@ -196,16 +175,9 @@ export const updateProduct = async (req, res) => {
   }
 };
 
-
-
-export const deleteProduct = async (
-  req,
-  res
-) => {
+export const deleteProduct = async (req, res) => {
   try {
-    const product = await Product.findById(
-      req.params.id
-    ).populate('shop');
+    const product = await Product.findById(req.params.id).populate('shop');
 
     if (!product) {
       return res.status(404).json({
@@ -214,14 +186,10 @@ export const deleteProduct = async (
       });
     }
 
-    if (
-      product.shop.owner.toString() !==
-      req.user._id.toString()
-    ) {
+    if (product.shop.owner.toString() !== req.user._id.toString()) {
       return res.status(403).json({
         success: false,
-        message:
-          'You can delete only your own products',
+        message: 'You can delete only your own products',
       });
     }
 
@@ -229,8 +197,31 @@ export const deleteProduct = async (
 
     res.status(200).json({
       success: true,
-      message:
-        'Product deleted successfully',
+      message: 'Product deleted successfully',
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const searchProducts = async (req, res) => {
+  try {
+    const keyword = req.query.keyword;
+
+    const products = await Product.find({
+      name: {
+        $regex: keyword,
+        $options: 'i',
+      },
+    }).populate('shop', 'shopName category');
+
+    res.status(200).json({
+      success: true,
+      count: products.length,
+      products,
     });
   } catch (error) {
     res.status(500).json({

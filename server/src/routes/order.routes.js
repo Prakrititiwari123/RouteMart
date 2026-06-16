@@ -7,6 +7,7 @@ import {
   updateOrderStatus,
   verifyPickupCode,
   payAdvanceAmount,
+  cancelOrder,
 } from '../controllers/order.controller.js';
 
 import { protect } from '../middlewares/auth.middleware.js';
@@ -24,5 +25,6 @@ router.put(
   authorize('SHOP_OWNER'),
   verifyPickupCode
 );
+router.put('/:id/cancel', protect, cancelOrder);
 router.put('/:id/pay-advance', protect, payAdvanceAmount);
 export default router;
