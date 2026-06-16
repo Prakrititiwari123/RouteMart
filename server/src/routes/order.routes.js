@@ -1,11 +1,11 @@
 import express from 'express';
 
-
 import {
   createOrder,
   getMyOrders,
   getShopOrders,
-    updateOrderStatus,
+  updateOrderStatus,
+  verifyPickupCode,
 } from '../controllers/order.controller.js';
 
 import { protect } from '../middlewares/auth.middleware.js';
@@ -16,13 +16,7 @@ const router = express.Router();
 router.post('/', protect, createOrder);
 router.get('/my-orders', protect, getMyOrders);
 router.get('/shop-orders', protect, authorize('SHOP_OWNER'), getShopOrders);
-router.put(
-  '/:id/status',
-  protect,
-  authorize('SHOP_OWNER'),
-  updateOrderStatus
-);
+router.put('/:id/status', protect, authorize('SHOP_OWNER'), updateOrderStatus);
+router.put('/:id/verify-pickup',protect,authorize('SHOP_OWNER'),verifyPickupCode);
 
 export default router;
-
-

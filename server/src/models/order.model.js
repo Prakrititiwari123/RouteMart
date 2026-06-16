@@ -17,8 +17,7 @@ const orderSchema = new mongoose.Schema(
     products: [
       {
         product: {
-          type:
-            mongoose.Schema.Types.ObjectId,
+          type: mongoose.Schema.Types.ObjectId,
           ref: 'Product',
           required: true,
         },
@@ -26,7 +25,7 @@ const orderSchema = new mongoose.Schema(
         quantity: {
           type: Number,
           required: true,
-          min:1,
+          min: 1,
         },
 
         price: {
@@ -56,21 +55,23 @@ const orderSchema = new mongoose.Schema(
 
     paymentStatus: {
       type: String,
-      enum: [
-        'PENDING',
-        'PARTIAL',
-        'PAID',
-      ],
+      enum: ['PENDING', 'PARTIAL', 'PAID'],
       default: 'PENDING',
     },
 
     deliveryType: {
       type: String,
-      enum: [
-        'PICKUP',
-        'HOME_DELIVERY',
-      ],
+      enum: ['PICKUP', 'HOME_DELIVERY'],
       default: 'PICKUP',
+    },
+    pickupCode: {
+      type: String,
+      required: true,
+    },
+
+    pickupVerified: {
+      type: Boolean,
+      default: false,
     },
   },
   {
@@ -78,9 +79,6 @@ const orderSchema = new mongoose.Schema(
   }
 );
 
-const Order = mongoose.model(
-  'Order',
-  orderSchema
-);
+const Order = mongoose.model('Order', orderSchema);
 
 export default Order;

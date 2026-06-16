@@ -2,6 +2,7 @@ import Order from '../models/order.model.js';
 import Cart from '../models/cart.model.js';
 import Product from '../models/product.model.js';
 import Shop from '../models/shop.model.js';
+import generatePickupCode from '../utils/generatePickupCode.js';
 
 export const createOrder = async (req, res) => {
   try {
@@ -37,6 +38,9 @@ export const createOrder = async (req, res) => {
       shop: shopId,
       products,
       totalAmount,
+
+      pickupCode: generatePickupCode(),
+
       deliveryType: deliveryType || 'PICKUP',
     });
 
@@ -128,6 +132,46 @@ export const updateOrderStatus = async (req, res) => {
 
     res.status(200).json({
       success: true,
+      order,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const verifyPickupCode = async (req, res) => {
+  try {
+    const { code } = req.body;
+
+    const order = await Order.findById(req.params.id);
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: 'Order not found',
+      });
+    }
+
+    if (order.pickupCode !== code) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid Pickup Code',
+      });
+    }
+
+    order.pickupVerified = true;
+
+    order.orderStatus = 'DELIVERED';
+    order.paymentStatus = 'PAID';
+
+    await order.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Pickup Verified Successfully',
       order,
     });
   } catch (error) {
