@@ -61,14 +61,50 @@ export const createProduct = async (
 };
 
 
-export const getAllProducts = async (req, res) => {
+export const getAllProducts = async (
+  req,
+  res
+) => {
   try {
-    const products = await Product.find()
-      .populate('shop', 'shopName category');
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+
+    const keyword = req.query.keyword
+      ? {
+          name: {
+            $regex: req.query.keyword,
+            $options: 'i',
+          },
+        }
+      : {};
+
+    const category = req.query.category
+      ? { category: req.query.category }
+      : {};
+
+    const filter = {
+      ...keyword,
+      ...category,
+    };
+
+    const totalProducts =
+      await Product.countDocuments(filter);
+
+    const products = await Product.find(filter)
+      .populate(
+        'shop',
+        'shopName category'
+      )
+      .skip((page - 1) * limit)
+      .limit(limit);
 
     res.status(200).json({
       success: true,
-      count: products.length,
+      totalProducts,
+      currentPage: page,
+      totalPages: Math.ceil(
+        totalProducts / limit
+      ),
       products,
     });
   } catch (error) {

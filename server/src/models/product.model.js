@@ -18,6 +18,10 @@ const productSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    sku: {
+      type: String,
+      unique: true,
+    },
 
     category: {
       type: String,
