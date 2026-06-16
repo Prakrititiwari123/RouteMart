@@ -21,6 +21,14 @@ const productSchema = new mongoose.Schema(
 
     category: {
       type: String,
+      enum: [
+        'MEDICINE',
+        'VEGETABLE',
+        'GROCERY',
+        'DAIRY',
+        'BAKERY',
+        'STATIONERY',
+      ],
       required: true,
     },
 
@@ -51,9 +59,6 @@ const productSchema = new mongoose.Schema(
   }
 );
 
-const Product = mongoose.model(
-  'Product',
-  productSchema
-);
+const Product = mongoose.model('Product', productSchema);
 
 export default Product;
