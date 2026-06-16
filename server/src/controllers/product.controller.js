@@ -111,3 +111,95 @@ export const getProductById = async (
     });
   }
 };
+
+
+
+export const updateProduct = async (req, res) => {
+  try {
+    const product = await Product.findById(
+      req.params.id
+    ).populate('shop');
+
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: 'Product not found',
+      });
+    }
+
+    if (
+      product.shop.owner.toString() !==
+      req.user._id.toString()
+    ) {
+      return res.status(403).json({
+        success: false,
+        message:
+          'You can update only your own products',
+      });
+    }
+
+    const updatedProduct =
+      await Product.findByIdAndUpdate(
+        req.params.id,
+        req.body,
+        {
+          new: true,
+          runValidators: true,
+        }
+      );
+
+    res.status(200).json({
+      success: true,
+      product: updatedProduct,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+
+
+export const deleteProduct = async (
+  req,
+  res
+) => {
+  try {
+    const product = await Product.findById(
+      req.params.id
+    ).populate('shop');
+
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: 'Product not found',
+      });
+    }
+
+    if (
+      product.shop.owner.toString() !==
+      req.user._id.toString()
+    ) {
+      return res.status(403).json({
+        success: false,
+        message:
+          'You can delete only your own products',
+      });
+    }
+
+    await product.deleteOne();
+
+    res.status(200).json({
+      success: true,
+      message:
+        'Product deleted successfully',
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
