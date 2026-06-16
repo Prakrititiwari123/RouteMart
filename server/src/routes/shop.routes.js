@@ -1,7 +1,7 @@
 import express from 'express';
 
 import { createShop, getAllShops, getShopById,
-  updateShop, } from '../controllers/shop.controller.js';
+  updateShop,deleteShop } from '../controllers/shop.controller.js';
 
 import { protect } from '../middlewares/auth.middleware.js';
 import { authorize } from '../middlewares/role.middleware.js';
@@ -17,6 +17,13 @@ router.put(
   protect,
   authorize('SHOP_OWNER'),
   updateShop
+);
+
+router.delete(
+  '/:id',
+  protect,
+  authorize('SHOP_OWNER'),
+  deleteShop
 );
 
 router.post(
